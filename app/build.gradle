@@ -1,0 +1,129 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "com.lauren.multichanneldemo"
+        minSdkVersion 17
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            def liulingStoreFile = System.getenv("LIULING_STORE_FILE")
+            def liulingKeyAlias = System.getenv("LIULING_KEY_ALIAS")
+            def liulingKeyPassword = System.getenv("LIULING_KEY_PASSWORD")
+            def liulingStorePassword = System.getenv("LIULING_STORE_PASSWORD")
+            def isSigning = (liulingStoreFile != null) && (liulingKeyAlias != null) && (liulingKeyPassword != null) && (liulingStorePassword != null)
+            if(isSigning){
+                storeFile file(liulingStoreFile)
+                keyAlias liulingKeyAlias
+                keyPassword liulingKeyPassword
+                storePassword liulingStorePassword
+            } else {
+                storeFile file("debug.keystore")
+                keyAlias "AndroidDebugKey"
+                keyPassword "android"
+                storePassword "android"
+            }
+        }
+        debug {
+            storeFile file("debug.keystore")
+            keyAlias "AndroidDebugKey"
+            keyPassword "android"
+            storePassword "android"
+        }
+    }
+
+    buildTypes {
+        release {
+            // 不显示Log
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            //启用混淆代码的功能
+            minifyEnabled true
+            //压缩对齐生成的apk包
+            zipAlignEnabled true
+            //指定混淆规则，需要压缩优化的混淆要把proguard-android.txt换成proguard-android.txt
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources true
+            signingConfig signingConfigs.release //打包命令行：gradlew assembleRelease
+        }
+
+        debug {
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+//    productFlavors {
+//        _91 {
+//            manifestPlaceholders = [MTA_CHANNEL_VALUE: "91"]
+//        }
+//        wandoujia {
+//            manifestPlaceholders = [MTA_CHANNEL_VALUE: "wandoujia"]
+//        }
+//        xiaomi {
+//            manifestPlaceholders = [MTA_CHANNEL_VALUE: "xiaomi"]
+//        }
+//
+//        _360shoufa{
+//            manifestPlaceholders = [MTA_CHANNEL_VALUE: "360shoufa"]
+//        }
+//        anzhi{
+//            manifestPlaceholders = [MTA_CHANNEL_VALUE: "anzhi"]
+//        }
+//        baidushoufa{
+//            manifestPlaceholders = [MTA_CHANNEL_VALUE: "baidushoufa"]
+//        }
+//        huaweishoufa{
+//            manifestPlaceholders = [MTA_CHANNEL_VALUE: "huaweishoufa"]
+//        }
+//    }
+    productFlavors {
+        _91 {}
+        wandoujia {}
+        xiaomi {}
+        _360shoufa{}
+        anzhi{}
+        baidushoufa{}
+        huaweishoufa{}
+    }
+    //批量处理
+    productFlavors.all {
+        flavor ->
+            def channel = name.startsWith("_") ? name.substring(1) : name
+            flavor.manifestPlaceholders = [MTA_CHANNEL_VALUE: channel]
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (variant.buildType.name.equals('release')) {
+                //可自定义自己想要生成的格式
+                def channel = variant.productFlavors[0].name.startsWith("_") ? variant.productFlavors[0].name.substring(1) : variant.productFlavors[0].name
+                def fileName = "v${defaultConfig.versionName}_${releaseTime()}_${channel}.apk"
+                output.outputFile = new File(outputFile.parent, fileName)
+            }
+        }
+    }
+    apply from: 'productFlavors.gradle'
+
+}
+
+def releaseTime() {
+    return new Date().format("yyyyMMdd", TimeZone.getTimeZone("UTC"))
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+}

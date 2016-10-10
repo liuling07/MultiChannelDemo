@@ -1,0 +1,11 @@
+apply plugin: 'com.android.application'
+android {
+    productFlavors {
+        feature {
+            buildConfigField 'String', 'PARTNER_CODE', '"feature"'
+        }
+        product {
+            buildConfigField 'String', 'PARTNER_CODE', '"product"'
+        }
+    }
+}
