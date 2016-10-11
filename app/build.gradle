@@ -86,6 +86,8 @@ android {
 //            manifestPlaceholders = [MTA_CHANNEL_VALUE: "huaweishoufa"]
 //        }
 //    }
+
+    // 如果嫌上面写法麻烦,也可以这样简写,加上一个批量处理即可.
     productFlavors {
         _91 {}
         wandoujia {}
